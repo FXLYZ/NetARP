@@ -1,52 +1,51 @@
-﻿  pch.cpp
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(411,5): warning MSB8028: 中间目录(x64\Debug\)包含从另一个项目(NetDataGet.vcxproj)共享的文件。   这会导致错误的清除和重新生成行为。
+cl : 命令行 warning D9025: 正在重写“/sdl”(用“/GS-”)
+  pch.cpp
 cl : 命令行 warning D9025: 正在重写“/sdl”(用“/GS-”)
   NetDataGet.cpp
   NetDataGetDlg.cpp
-cl : 命令行 warning D9025: 正在重写“/sdl”(用“/GS-”)
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(152,33): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\afxwin.h(3821): message : 参见“CEdit”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(164,33): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\afxwin.h(3821): message : 参见“CEdit”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(230,11): error C2440: “=”: 无法从“CString”转换为“LPCWSTR”
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(230,11): message : 没有可用于执行该转换的用户定义的转换运算符，或者无法调用该运算符
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(242,29): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\afxwin.h(3821): message : 参见“CEdit”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(245,32): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\afxwin.h(3821): message : 参见“CEdit”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(266,28): error C2039: “GetWindowTextW”: 不是“CEdit”的成员
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\afxwin.h(3821): message : 参见“CEdit”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(267,28): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\afxwin.h(3821): message : 参见“CEdit”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(311,132): error C2664: “void ATL::CStringT<char,StrTraitMFC<char,ATL::ChTraitsCRT<_CharType>>>::Format(UINT,...)”: 无法将参数 1 从“const wchar_t [40]”转换为“const char *”
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(311,132): error C2664:         with
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(311,132): error C2664:         [
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(311,132): error C2664:             _CharType=char
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(311,132): error C2664:         ]
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(311,16): message : 与指向的类型无关；强制转换要求 reinterpret_cast、C 样式强制转换或函数样式强制转换
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message : 参见“ATL::CStringT<char,StrTraitMFC<char,ATL::ChTraitsCRT<_CharType>>>::Format”的声明
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message :         with
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message :         [
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message :             _CharType=char
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message :         ]
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(313,41): error C2039: “PostMessageW”: 不是“CWnd”的成员
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\afxwin.h(2181): message : 参见“CWnd”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(318,75): error C2664: “void ATL::CStringT<char,StrTraitMFC<char,ATL::ChTraitsCRT<_CharType>>>::Format(UINT,...)”: 无法将参数 1 从“const wchar_t [33]”转换为“const char *”
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(318,75): error C2664:         with
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(318,75): error C2664:         [
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(318,75): error C2664:             _CharType=char
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(318,75): error C2664:         ]
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(318,15): message : 与指向的类型无关；强制转换要求 reinterpret_cast、C 样式强制转换或函数样式强制转换
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message : 参见“ATL::CStringT<char,StrTraitMFC<char,ATL::ChTraitsCRT<_CharType>>>::Format”的声明
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message :         with
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message :         [
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message :             _CharType=char
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\cstringt.h(2182,15): message :         ]
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(320,40): error C2039: “PostMessageW”: 不是“CWnd”的成员
-D:\VS2019IDE\VC\Tools\MSVC\14.23.28105\atlmfc\include\afxwin.h(2181): message : 参见“CWnd”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(293,1): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\time.h(506): message : 参见“localtime”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(308,1): warning C4996: '_itoa': This function or variable may be unsafe. Consider using _itoa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\stdlib.h(640): message : 参见“_itoa”的声明
-C:\Users\曾志韬\Desktop\NetDataGet\NetDataGet\NetDataGetDlg.cpp(309,1): warning C4996: '_itoa': This function or variable may be unsafe. Consider using _itoa_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(69): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\stdio.h(1774): note: 参见“sprintf”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(201): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.20.27508\atlmfc\include\afxwin.h(3821): note: 参见“CEdit”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(227): error C2664: “void ATL::CStringT<char,StrTraitMFC<char,ATL::ChTraitsCRT<_CharType>>>::Format(UINT,...)”: 无法将参数 1 从“const wchar_t [22]”转换为“const char *”
+          with
+          [
+              _CharType=char
+          ]
+  C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(227): note: 与指向的类型无关；强制转换要求 reinterpret_cast、C 样式强制转换或函数样式强制转换
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(229): error C2039: “GetWindowTextW”: 不是“CEdit”的成员
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.20.27508\atlmfc\include\afxwin.h(3821): note: 参见“CEdit”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(230): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.20.27508\atlmfc\include\afxwin.h(3821): note: 参见“CEdit”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(223): warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\WinSock2.h(1849): note: 参见“inet_ntoa”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(225): warning C4996: 'inet_ntoa': Use inet_ntop() or InetNtop() instead or define _WINSOCK_DEPRECATED_NO_WARNINGS to disable deprecated API warnings
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\um\WinSock2.h(1849): note: 参见“inet_ntoa”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(343): error C2440: “=”: 无法从“CString”转换为“LPCWSTR”
+  C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(343): note: 没有可用于执行该转换的用户定义的转换运算符，或者无法调用该运算符
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(380): error C2664: “void ATL::CStringT<char,StrTraitMFC<char,ATL::ChTraitsCRT<_CharType>>>::Format(UINT,...)”: 无法将参数 1 从“const wchar_t [22]”转换为“const char *”
+          with
+          [
+              _CharType=char
+          ]
+  C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(380): note: 与指向的类型无关；强制转换要求 reinterpret_cast、C 样式强制转换或函数样式强制转换
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(390): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.20.27508\atlmfc\include\afxwin.h(3821): note: 参见“CEdit”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(415): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.20.27508\atlmfc\include\afxwin.h(3821): note: 参见“CEdit”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(436): error C2039: “GetWindowTextW”: 不是“CEdit”的成员
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.20.27508\atlmfc\include\afxwin.h(3821): note: 参见“CEdit”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(437): error C2039: “SetWindowTextW”: 不是“CEdit”的成员
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.20.27508\atlmfc\include\afxwin.h(3821): note: 参见“CEdit”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(488): error C2664: “void ATL::CStringT<char,StrTraitMFC<char,ATL::ChTraitsCRT<_CharType>>>::Format(UINT,...)”: 无法将参数 1 从“const wchar_t [33]”转换为“const char *”
+          with
+          [
+              _CharType=char
+          ]
+  C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(488): note: 与指向的类型无关；强制转换要求 reinterpret_cast、C 样式强制转换或函数样式强制转换
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(490): error C2039: “PostMessageW”: 不是“CWnd”的成员
+  C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.20.27508\atlmfc\include\afxwin.h(2181): note: 参见“CWnd”的声明
+C:\Users\曾志韬\Desktop\NetARP\NetDataGet\NetDataGetDlg.cpp(463): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\time.h(506): note: 参见“localtime”的声明
   正在生成代码...
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.17763.0\ucrt\stdlib.h(640): message : 参见“_itoa”的声明

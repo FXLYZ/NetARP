@@ -202,79 +202,58 @@ BOOL CNetDataGetDlg::OnInitDialog()
 	}
 	else
 	{
+		addrs = new pcap_addr[20];
 		int count = 0;
 		for (d = alldevs; d != NULL; d = d->next)
 		{
-			dnames[count] = d->name;
+			/*dnames[count] = d->name;
 			dinfos[count] = d->description;
 			NetWorkCardBox.InsertString(count,dnames[count]);
-			count++;
-			for (a = d->addresses; a; a = a->next)
+			a = d->addresses;
+			addrs[count].addr = a->addr;
+			addrs[count].netmask = a->netmask;
+			addrs[count].broadaddr = a->broadaddr;
+			addrs[count].dstaddr = a->dstaddr;
+			count++;*/
+			for (a=d->addresses; a!=NULL; a=a->next)
 			{
-				struct in_addr net_ip_address;//网卡IP信息,在pcap.h里面有定义
-				u_int32_t net_ip;
-				char* net_ip_string;
+				char* ip4str = "";
+				char* netmask = "";
+				char* info = "";
+				char ip6str[128];
 
-				struct in_addr net_mask_address;
-				u_int32_t net_mask;
-				char* net_mask_string;
-				pcap_lookupnet(d->name, &net_ip, &net_mask, errbuf);
-				net_ip_address.s_addr = net_ip;
-				net_ip_string = inet_ntoa(net_ip_address);
-				net_mask_address.s_addr = net_mask;
-				net_mask_string = inet_ntoa(net_mask_address);
+				switch (a->addr->sa_family)
+				{
+				case AF_INET:
+					info = "Address Family Name: AF_INET";
+					if (a->addr)
+						ip4str = iptos(((struct sockaddr_in*)a->addr)->sin_addr.s_addr);
+					if (a->netmask)
+						netmask = iptos(((struct sockaddr_in*)a->netmask)->sin_addr.s_addr);
+					if (a->broadaddr)
+						printf("\tBroadcast Address: %s\n", iptos(((struct sockaddr_in*)a->broadaddr)->sin_addr.s_addr));
+					if (a->dstaddr)
+						printf("\tDestination Address: %s\n", iptos(((struct sockaddr_in*)a->dstaddr)->sin_addr.s_addr));
+					break;
+				case AF_INET6:
+					info = "Address Family Name: AF_INET6";
+					if (a->addr)
+					{
+						ip6tos(a->addr, ip6str, sizeof(ip6str));
+						ip4str = ip6str;
+					}
+					break;
+				default:
+					info = "Address Family Name: Unknown";
+					break;
+				}
 				CString addrInfo;
-				addrInfo.Format(L"IP=%hs\r\nNetMask=%hs\r\n", net_ip_string, net_mask_string);
+				addrInfo.Format(L"%hs\r\nIP=%hs\r\nNetMask=%hs\r\n", info, ip4str, netmask);
 				CString temp;
 				NetWorkCardInfo.GetWindowTextW(temp);
-				NetWorkCardInfo.SetWindowTextW(temp + addrInfo);
-			}
-			//a = d->addresses;
-			//addrs[count].addr = a->addr;
-			//addrs[count].netmask = a->netmask;
-			//addrs[count].broadaddr = a->broadaddr;
-			//addrs[count].dstaddr = a->dstaddr;
-			//count++;
-
-			///*char* ip4str = NULL;
-			//char* netmask = NULL;
-			//char ip6str[128];
-			//switch (a->addr->sa_family)
-			//{
-			//case AF_INET:
-			//	printf("\tAddress Family Name: AF_INET\n");
-			//	if (a->addr)
-			//		ip4str = iptos(((struct sockaddr_in*)a->addr)->sin_addr.s_addr);
-			//	if (a->netmask)
-			//		netmask = iptos(((struct sockaddr_in*)a->addr)->sin_addr.s_addr);
-			//	if (a->broadaddr)
-			//		printf("\tBroadcast Address: %s\n", iptos(((struct sockaddr_in*)a->broadaddr)->sin_addr.s_addr));
-			//	if (a->dstaddr)
-			//		printf("\tDestination Address: %s\n", iptos(((struct sockaddr_in*)a->dstaddr)->sin_addr.s_addr));
-			//	break;
-
-			//case AF_INET6:
-			//	printf("\tAddress Family Name: AF_INET6\n");
-			//	if (a->addr)
-
-			//		printf("\tAddress: %s\n", ip6tos(a->addr, ip6str, sizeof(ip6str)));
-			//	break;
-
-			//default:
-			//	printf("\tAddress Family Name: Unknown\n");
-			//	break;
-			//}*/
-			//sockaddr_in* saddr = (sockaddr_in*)a->addr;
-			//char* ip4str=inet_ntoa(saddr->sin_addr);
-			//sockaddr_in* snetmask = (sockaddr_in*)a->netmask;
-			//char* netmask = inet_ntoa(snetmask->sin_addr);
-			//CString addrInfo;
-			//addrInfo.Format(L"IP=%hs\r\nNetMask=%hs\r\n", ip4str, netmask);
-			//CString temp;
-			//NetWorkCardInfo.GetWindowTextW(temp);
-			//NetWorkCardInfo.SetWindowTextW(temp + addrInfo);
+				NetWorkCardInfo.SetWindowTextW(temp+addrInfo);
+			}			
 		}
-		//NetWorkCardInfo.SetWindowTextW(L"获取网卡成功");
 	}
 	pcap_freealldevs(alldevs);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
@@ -344,13 +323,18 @@ void CNetDataGetDlg::OnBnClickedButtonStart()
 	const char* namecstr = s.c_str();
 	pcap_addr* a=&addrs[index];
 
-	char* ip4str=NULL;
-	char* netmask=NULL;
+	char* ip4str="";
+	char* netmask="";
+	char* info = "";
 	char ip6str[128];
+
+	/*ip4str = "192.168.0.1";
+	netmask = "255.255.255.0";*/
+
 	switch (a->addr->sa_family)
 	{
 	case AF_INET:
-		printf("\tAddress Family Name: AF_INET\n");
+		info = "Address Family Name: AF_INET";
 		if (a->addr)
 			ip4str = iptos(((struct sockaddr_in*)a->addr)->sin_addr.s_addr);
 		if (a->netmask)
@@ -360,16 +344,16 @@ void CNetDataGetDlg::OnBnClickedButtonStart()
 		if (a->dstaddr)
 			printf("\tDestination Address: %s\n", iptos(((struct sockaddr_in*)a->dstaddr)->sin_addr.s_addr));
 		break;
-
 	case AF_INET6:
-		printf("\tAddress Family Name: AF_INET6\n");
+		info = "Address Family Name: AF_INET6";
 		if (a->addr)
-
-			printf("\tAddress: %s\n", ip6tos(a->addr, ip6str, sizeof(ip6str)));
+		{
+			ip6tos(a->addr, ip6str, sizeof(ip6str));
+			ip4str = ip6str;
+		}
 		break;
-
 	default:
-		printf("\tAddress Family Name: Unknown\n");
+		info = "Address Family Name: Unknown";
 		break;
 	}
 	/*sockaddr_in* saddr = (sockaddr_in*)a->addr;
@@ -377,7 +361,7 @@ void CNetDataGetDlg::OnBnClickedButtonStart()
 	sockaddr_in* snetmask = (sockaddr_in*)a->netmask;
 	char* netmask = inet_ntoa(snetmask->sin_addr);*/
 	CString addrInfo;
-	addrInfo.Format(L"IP=%hs\r\nNetMask=%hs\r\n", ip4str, netmask);
+	addrInfo.Format(L"%hs\r\nIP=%hs\r\nNetMask=%hs\r\n", info,ip4str, netmask);
 	if ((adhandle = pcap_open(namecstr,          // 设备名
 		65536,            // 要捕捉的数据包的部分 
 						  // 65535保证能捕获到不同数据链路层上的每个数据包的全部内容

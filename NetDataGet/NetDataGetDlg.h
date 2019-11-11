@@ -40,7 +40,7 @@ public:
 	CButton StopCatch;
 	CString dnames[10];
 	CString dinfos[10];
-	pcap_addr addrs[10];
+	pcap_addr* addrs;
 	afx_msg void OnBnClickedButtonStart();
 	afx_msg void OnBnClickedButtonStop();
 protected:
