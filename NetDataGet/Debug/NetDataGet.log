@@ -1,6 +1,2 @@
 ﻿D:\VS2019IDE\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(452,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (NetDataGet.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  NetDataGetDlg.cpp
-C:\Users\曾志韬\Desktop\DO\NetARP\NetDataGet\NetDataGetDlg.cpp(527,16): warning C4101: “tempMac”: 未引用的局部变量
-C:\Users\曾志韬\Desktop\DO\NetARP\NetDataGet\NetDataGetDlg.cpp(529,5): warning C4101: “target”: 未引用的局部变量
-C:\Users\曾志韬\Desktop\DO\NetARP\NetDataGet\NetDataGetDlg.cpp(555,16): warning C4101: “ip”: 未引用的局部变量
   NetDataGet.vcxproj -> C:\Users\曾志韬\Desktop\DO\NetARP\Debug\NetARP.exe

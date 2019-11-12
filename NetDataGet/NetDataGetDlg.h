@@ -50,6 +50,7 @@ public:
 	CEdit MACinfo;
 	afx_msg void OnBnClickedSend();
 	CIPAddressCtrl DesIPAddr;
+	CIPAddressCtrl SourceIPAddr;
 };
 
 

@@ -147,7 +147,7 @@ char* ip6tos(struct sockaddr* sockaddr, char* address, int addrlen)
 }
 
 /*获取自己的主机的IP地址和MAC地址*/
-CString GetSelfMac(pcap_t* adhandle, string desIP)
+CString GetSelfMac(pcap_t* adhandle, u_long desIP)
 {
 	struct pcap_pkthdr* pkt_header;
 	const u_char* pkt_data;
@@ -171,7 +171,7 @@ CString GetSelfMac(pcap_t* adhandle, string desIP)
 	ah.protocol_add_len = 4;
 	ah.source_ip_add = inet_addr("0.0.0.0"); //源ip地址位任意的ip地址
 	ah.operation_field = htons(ARP_REQUEST);
-	ah.dest_ip_add = inet_addr(desIP.c_str());
+	ah.dest_ip_add = desIP;
 
 	memset(sendbuf, 0, sizeof(sendbuf));
 	memcpy(sendbuf, &eh, sizeof(eh));
@@ -268,6 +268,7 @@ void CNetDataGetDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON3, StopCatch);
 	DDX_Control(pDX, IDC_EDIT1, MACinfo);
 	DDX_Control(pDX, IDC_IPADDRESS1, DesIPAddr);
+	DDX_Control(pDX, IDC_IPADDRESS2, SourceIPAddr);
 }
 
 BEGIN_MESSAGE_MAP(CNetDataGetDlg, CDialogEx)
@@ -467,8 +468,9 @@ void CNetDataGetDlg::OnBnClickedButtonStart()
 	}
 
 	//静态设置
-	string myip = "10.129.253.241";
 
+	SourceIPAddr.GetAddress(myip);
+	myip = htonl(myip);
 	CString MAC = GetSelfMac(adhandle, myip);
 	MACinfo.SetWindowTextW(MAC);
 }
