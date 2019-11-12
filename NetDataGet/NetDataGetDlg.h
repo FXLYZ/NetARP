@@ -47,6 +47,9 @@ protected:
 	afx_msg LRESULT OnMymessage(WPARAM wParam, LPARAM lParam);
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	CEdit MACinfo;
+	afx_msg void OnBnClickedSend();
+	CIPAddressCtrl DesIPAddr;
 };
 
 

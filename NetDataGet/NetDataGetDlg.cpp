@@ -9,12 +9,52 @@
 #include "afxdialogex.h"
 #include "pcap.h"
 #include<string>
+#include<iostream>
 using namespace std;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 #define WM_MYMESSAGE WM_USER+1
+
+#define ETH_IP 0X0800
+#define ETH_ARP 0X0806
+#define ARP_REQUEST 0X0001
+#define ARP_REPLY 0X0002
+#define ARP_HARDWARE 0X0001
+#define max_num_adapter 10
+
+#pragma pack(1)
+struct arp_head
+{
+	unsigned short hardware_type; //硬件类型
+	unsigned short protocol_type; //协议类型
+	unsigned char hardware_add_len; //硬件地址长度
+	unsigned char protocol_add_len; //协议地址长度
+	unsigned short operation_field; //操作字段
+	unsigned char source_mac_add[6]; //源mac地址
+	unsigned long source_ip_add; //源ip地址
+	unsigned char dest_mac_add[6]; //目的mac地址
+	unsigned long dest_ip_add; //目的ip地址
+};
+struct ethernet_head
+{
+	unsigned char dest_mac_add[6];
+	unsigned char source_mac_add[6];
+	unsigned short type; // 帧类型
+};
+struct arp_packet
+{
+	ethernet_head eh;
+	arp_head ah;
+};
+#pragma pack(0)
+
+//全局变量
+u_char selfMac[6] = { 0 };
+u_long myip;
+HANDLE mThread;
+
 
 #pragma pack(1)
 struct FrameHeader_t
@@ -55,6 +95,20 @@ struct ARPFrame_t
 	DWORD RecvIP;
 };
 #pragma pack()
+
+CString MACstring(unsigned char mac[6])
+{
+	CString MAC;
+	MAC.Format(L"%2x-%2x-%2x-%2x-%2x-%2x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	return MAC;
+}
+CString IPstring(unsigned long ip)
+{
+	in_addr addr;
+	memcpy(&addr, &ip, sizeof(ip));
+	string strIp = inet_ntoa(addr);
+	return CString(strIp.c_str());
+}
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 /* 将数字类型的IP地址转换成字符串类型的 */
 #define IPTOSBUFFERS    12
@@ -92,7 +146,77 @@ char* ip6tos(struct sockaddr* sockaddr, char* address, int addrlen)
 	return address;
 }
 
+/*获取自己的主机的IP地址和MAC地址*/
+CString GetSelfMac(pcap_t* adhandle, string desIP)
+{
+	struct pcap_pkthdr* pkt_header;
+	const u_char* pkt_data;
+	unsigned char sendbuf[42] = { 0 }; // 发送缓冲区，也是arp包的大小
+	int i = -1;
+	int res;
+	ethernet_head eh;
+	arp_head ah;
 
+
+	memset(eh.dest_mac_add, 0xff, 6);
+	memset(eh.source_mac_add, 0x00, 6);
+
+	memset(ah.source_mac_add, 0x00, 6);
+	memset(ah.dest_mac_add, 0x00, 6);
+
+	eh.type = htons(ETH_ARP);
+	ah.hardware_type = htons(ARP_HARDWARE);
+	ah.protocol_type = htons(ETH_IP);
+	ah.hardware_add_len = 6;
+	ah.protocol_add_len = 4;
+	ah.source_ip_add = inet_addr("0.0.0.0"); //源ip地址位任意的ip地址
+	ah.operation_field = htons(ARP_REQUEST);
+	ah.dest_ip_add = inet_addr(desIP.c_str());
+
+	memset(sendbuf, 0, sizeof(sendbuf));
+	memcpy(sendbuf, &eh, sizeof(eh));
+	memcpy(sendbuf + sizeof(eh), &ah, 14);
+	memcpy(sendbuf + sizeof(eh) + 14, &ah.source_ip_add, 10);
+	memcpy(sendbuf + sizeof(eh) + 24, &ah.dest_ip_add, 4);
+
+	if (pcap_sendpacket(adhandle, sendbuf, 42) == 0)
+		cout << "发送arp包成功" << endl;
+	else
+		cout << "发送arp包失败" << GetLastError() << endl;
+
+	//得到包的回复
+	while ((res = pcap_next_ex(adhandle, &pkt_header, &pkt_data)) > 0)
+	{
+		if (*(unsigned short*)(pkt_data + 12) == htons(ETH_ARP) &&
+			*(unsigned short*)(pkt_data + 20) == htons(ARP_REPLY) &&
+			*(unsigned long*)(pkt_data + 38) == inet_addr("0.0.0.0"))
+		{
+			cout << "本机网卡物理地址：";
+			for (i = 0; i < 5; i++)
+			{
+				selfMac[i] = *(unsigned char*)(pkt_data + 22 + i);
+				cout << selfMac[i];
+			}
+
+			selfMac[i] = *(unsigned char*)(pkt_data + 22 + i);
+			cout << selfMac[i] << endl;
+			myip = *(unsigned long*)(pkt_data + 28);
+			break;
+		}
+	}
+	CString MAC = MACstring(selfMac);
+	CString IP = IPstring(myip);
+	if (res == 0)
+		cout << "超时！接收网络包超时" << endl;
+
+	if (res == -1)
+		cout << "读取网络包时错误" << endl;
+
+	if (i == 5)
+		return MAC+L"\r\n"+IP+L"\r\n";
+	else
+		return CString("EORR") ;
+}
 class CAboutDlg : public CDialogEx
 {
 public:
@@ -141,7 +265,9 @@ void CNetDataGetDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST1, NetWorkCardBox);
 	DDX_Control(pDX, IDC_EDIT2, NetWorkCardInfo);
 	DDX_Control(pDX, IDC_BUTTON1, StartCatch);
-	DDX_Control(pDX, IDC_BUTTON3, StopCatch); 
+	DDX_Control(pDX, IDC_BUTTON3, StopCatch);
+	DDX_Control(pDX, IDC_EDIT1, MACinfo);
+	DDX_Control(pDX, IDC_IPADDRESS1, DesIPAddr);
 }
 
 BEGIN_MESSAGE_MAP(CNetDataGetDlg, CDialogEx)
@@ -152,6 +278,7 @@ BEGIN_MESSAGE_MAP(CNetDataGetDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &CNetDataGetDlg::OnBnClickedButtonStop)
 	ON_MESSAGE(WM_MYMESSAGE, &CNetDataGetDlg::OnMymessage)
 	ON_WM_TIMER()
+	ON_BN_CLICKED(IDC_BUTTON2, &CNetDataGetDlg::OnBnClickedSend)
 END_MESSAGE_MAP()
 
 
@@ -206,15 +333,16 @@ BOOL CNetDataGetDlg::OnInitDialog()
 		int count = 0;
 		for (d = alldevs; d != NULL; d = d->next)
 		{
-			/*dnames[count] = d->name;
+			dnames[count] = d->name;
 			dinfos[count] = d->description;
 			NetWorkCardBox.InsertString(count,dnames[count]);
-			a = d->addresses;
-			addrs[count].addr = a->addr;
-			addrs[count].netmask = a->netmask;
-			addrs[count].broadaddr = a->broadaddr;
-			addrs[count].dstaddr = a->dstaddr;
-			count++;*/
+			count++;
+			CString num;
+			num.Format(L"%d", count);
+			CString temp;
+			NetWorkCardInfo.GetWindowTextW(temp);
+			NetWorkCardInfo.SetWindowTextW(temp + "------------------------------------\r\n网卡序号："+num+"\r\n"+d->name+"\r\n"+d->description+"\r\n");
+
 			for (a=d->addresses; a!=NULL; a=a->next)
 			{
 				char* ip4str = "";
@@ -249,10 +377,12 @@ BOOL CNetDataGetDlg::OnInitDialog()
 				}
 				CString addrInfo;
 				addrInfo.Format(L"%hs\r\nIP=%hs\r\nNetMask=%hs\r\n", info, ip4str, netmask);
-				CString temp;
 				NetWorkCardInfo.GetWindowTextW(temp);
 				NetWorkCardInfo.SetWindowTextW(temp+addrInfo);
-			}			
+			}
+			NetWorkCardInfo.GetWindowTextW(temp);
+			NetWorkCardInfo.SetWindowTextW(temp + "\r\n------------------------------------\r\n");
+
 		}
 	}
 	pcap_freealldevs(alldevs);
@@ -314,54 +444,15 @@ void CNetDataGetDlg::OnBnClickedButtonStart()
 	// TODO: 在此添加控件通知处理程序代码
 	pcap_t* adhandle;
 	char errbuf[PCAP_ERRBUF_SIZE];
-	
+
 	//抓包
-	int index=NetWorkCardBox.GetCurSel();
+	int index = NetWorkCardBox.GetCurSel();
 
 	USES_CONVERSION;
 	string s(W2A(dnames[index]));
 	const char* namecstr = s.c_str();
-	pcap_addr* a=&addrs[index];
 
-	char* ip4str="";
-	char* netmask="";
-	char* info = "";
-	char ip6str[128];
-
-	/*ip4str = "192.168.0.1";
-	netmask = "255.255.255.0";*/
-
-	switch (a->addr->sa_family)
-	{
-	case AF_INET:
-		info = "Address Family Name: AF_INET";
-		if (a->addr)
-			ip4str = iptos(((struct sockaddr_in*)a->addr)->sin_addr.s_addr);
-		if (a->netmask)
-			netmask = iptos(((struct sockaddr_in*)a->addr)->sin_addr.s_addr);
-		if (a->broadaddr)
-			printf("\tBroadcast Address: %s\n", iptos(((struct sockaddr_in*)a->broadaddr)->sin_addr.s_addr));
-		if (a->dstaddr)
-			printf("\tDestination Address: %s\n", iptos(((struct sockaddr_in*)a->dstaddr)->sin_addr.s_addr));
-		break;
-	case AF_INET6:
-		info = "Address Family Name: AF_INET6";
-		if (a->addr)
-		{
-			ip6tos(a->addr, ip6str, sizeof(ip6str));
-			ip4str = ip6str;
-		}
-		break;
-	default:
-		info = "Address Family Name: Unknown";
-		break;
-	}
-	/*sockaddr_in* saddr = (sockaddr_in*)a->addr;
-	char* IP=inet_ntoa(saddr->sin_addr);
-	sockaddr_in* snetmask = (sockaddr_in*)a->netmask;
-	char* netmask = inet_ntoa(snetmask->sin_addr);*/
-	CString addrInfo;
-	addrInfo.Format(L"%hs\r\nIP=%hs\r\nNetMask=%hs\r\n", info,ip4str, netmask);
+	//pcap_addr* a=&addrs[index];
 	if ((adhandle = pcap_open(namecstr,          // 设备名
 		65536,            // 要捕捉的数据包的部分 
 						  // 65535保证能捕获到不同数据链路层上的每个数据包的全部内容
@@ -396,11 +487,13 @@ void CNetDataGetDlg::OnBnClickedButtonStart()
 	//{
 
 	//}
-	NetWorkCardInfo.SetWindowTextW( dnames[index]+L"\r\n"+dinfos[index]+"\r\n"+addrInfo);
-	CWinThread* MyThread = AfxBeginThread(TheCapture, adhandle, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+
+	string myip = "10.129.253.241";
+
+	CString MAC = GetSelfMac(adhandle, myip);
+	MACinfo.SetWindowTextW(MAC);
+	//CWinThread* MyThread = AfxBeginThread(TheCapture, adhandle, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
 }
-
-
 void CNetDataGetDlg::OnBnClickedButtonStop()
 {
 	// TODO: 在此添加控件通知处理程序代码
@@ -427,51 +520,176 @@ void CNetDataGetDlg::OnTimer(UINT_PTR nIDEvent)
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	CDialogEx::OnTimer(nIDEvent);
 }
+struct arpAccept
+{
+	pcap_t* adhandle;
+	u_long desIP;
+};
+struct pc
+{
+	unsigned long ip;
+	unsigned char mac[6];
+}pcGroup[10000];
 
 UINT TheCapture(LPVOID pParam)
 {
-	msginfo* pinfo=new msginfo();
-	struct tm* ltime;
-	char timestr[16];
-	struct pcap_pkthdr* header;
-	const u_char* pkt_data;
-	time_t local_tv_sec;
-	pcap_t* adhandle=(pcap_t*)pParam;
 	int res;
-	while ((res = pcap_next_ex(adhandle, &header, &pkt_data)) >= 0) {
-		if (res == 0)
-			/* 超时时间到 */
-			continue;
-		/* 将时间戳转换成可识别的格式 */
-		local_tv_sec = header->ts.tv_sec;
-		ltime = localtime(&local_tv_sec);
-		strftime(timestr, sizeof timestr, "%H:%M:%S", ltime);
-
-		/*Data_t* IPPacket;
-		ULONG SourceIP, DestinationIP;
-		IPPacket = (Data_t*)pkt_data;
-
-		SourceIP = ntohl(IPPacket->IPHeader.SrcIP);
-		DestinationIP = ntohl(IPPacket->IPHeader.DstIP);
-		int version = (IPPacket->IPHeader.Ver_HLen & 0xf0) >> 4;
-		int hlen = (IPPacket->IPHeader.Ver_HLen & 0x0f);
-		if (version==4)
+	struct pcap_pkthdr* pkt_header;
+	const u_char* pkt_data;
+	unsigned char tempMac[6];
+	arpAccept* accept = ((arpAccept*)pParam);
+	pc target;
+	msginfo* pinfo = new msginfo();
+	while (TRUE)
+	{
+		if ((res = pcap_next_ex(accept->adhandle, &pkt_header, &pkt_data)) > 0)
 		{
-			char ID[4];
-			char Checksum[4];
-			_itoa(IPPacket->IPHeader.ID,ID,16);
-			_itoa(IPPacket->IPHeader.Checksum, Checksum, 16);
-			CString data;
-			data.Format(L"%hs,%.6d  len:%d\r\n标识:%hs  头部校验和:%hs\r\n\r\n", timestr, header->ts.tv_usec, header->len,ID,Checksum);
-			pinfo->content = data;
-			AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
-		}*/
+			if (*(unsigned short*)(pkt_data + 12) == htons(ETH_ARP) &&
+				*(unsigned short*)(pkt_data + 20) == htons(ARP_REPLY) &&
+				*(unsigned long*)(pkt_data + 38) == myip
+				/**(unsigned long*)(pkt_data + 28)==accept->desIP*/)
+			{
+				pinfo->content = L"检测ARP IP正确\r\n";
+				AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
+				//cout << "IP地址：" << (unsigned long)(recv->ah.source_ip_add & 255) << "." << (unsigned long)((recv->ah.source_ip_add >> 8) & 255) << "." << (unsigned long)((recv->ah.source_ip_add >> 16) & 255) << "." << (unsigned long)((recv->ah.source_ip_add >> 24) & 255) << "         ";
+				target.ip = *(unsigned long*)(pkt_data + 28);
+				memcpy(target.mac, (pkt_data + 22), 6);
+				CString data;
+				data.Format(L"SourceIP=%s\r\nSourceMac=%s\r\n", IPstring(target.ip), MACstring(target.mac));
+				pinfo->content = data;
+				AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
+				break;
+			}
+			//if (*(unsigned short*)(pkt_data + 12) == htons(ETH_ARP))
+			//{
+			//	pinfo->content = L"收到ARP ETH_ARP\r\n";
+			//	AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
+			//	arp_packet* recv = (arp_packet*)pkt_data;
+
+			//	//recv->ah.source_ip_add = *(unsigned long*)(pkt_data + 28);
+			//	if (*(unsigned short*)(pkt_data + 20) == htons(ARP_REPLY))
+			//	{
+			//		pinfo->content = L"检测ARP REPLY\r\n";
+			//		AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
+			//		if (recv->ah.source_ip_add==accept->desIP)
+			//		{
+			//			pinfo->content = L"检测ARP IP正确\r\n";
+			//			AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
+			//			//cout << "IP地址：" << (unsigned long)(recv->ah.source_ip_add & 255) << "." << (unsigned long)((recv->ah.source_ip_add >> 8) & 255) << "." << (unsigned long)((recv->ah.source_ip_add >> 16) & 255) << "." << (unsigned long)((recv->ah.source_ip_add >> 24) & 255) << "         ";
+			//			target.ip = *(unsigned long*)(pkt_data + 28);
+			//			memcpy(target.mac, (pkt_data + 22), 6);
+			//			CString data;
+			//			data.Format(L"SourceIP=%s\r\nSourceMac=%s\r\n", IPstring(target.ip),MACstring(target.mac));
+			//			pinfo->content = data;
+			//			AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
+			//			break;
+			//		}
+			//	}
+			//}
+		}
+
 	}
-	if (res == -1) {
+
+	/*for (int j = 0; j < 255; j++)
+	{
+		if (pcGroup[j].ip != 0)
+		{
+			cout << "IP地址：" << (pcGroup[j].ip & 255) << "." << ((pcGroup[j].ip >> 8) & 255) << "." << ((pcGroup[j].ip >> 16) & 255) << "." << ((pcGroup[j].ip >> 24) & 255) << "         ";
+			printf("MAC地址： %2x - %2x - %2x - %2x - %2x - %2x\n", pcGroup[j].mac[0], pcGroup[j].mac[1], pcGroup[j].mac[2], pcGroup[j].mac[3], pcGroup[j].mac[4], pcGroup[j].mac[5]);
+		}
+	}*/
+	return 1;
+}
+CString arpInfo(arp_head arp)
+{
+	CString sip = IPstring(arp.source_ip_add);
+	CString smac = MACstring(arp.source_mac_add);
+	CString dip = IPstring(arp.dest_ip_add);
+	CString dmac = MACstring(arp.dest_mac_add);
+	CString info;
+	info.Format(L"\r\n------------\r\nSourceIP=%s   SourceMAC=%s\r\nDesIP=%s  DesMac=%s\r\n------------\r\n", sip,smac, dip, dmac);
+	return info;
+}
+//发送arp请求
+unsigned int sendArpPacket(pcap_t* adhandle,u_long desIP)
+{
+	unsigned char sendbuf[42] = {0};
+	unsigned long ip;
+	const char iptosendh[20] = { 0 };
+	ethernet_head eh;
+	arp_head ah;
+
+	memset(eh.dest_mac_add, 0xff, 6);
+	memcpy(eh.source_mac_add, selfMac, 6);
+
+	memcpy(ah.source_mac_add, selfMac, 6);
+	memset(ah.dest_mac_add, 0x00, 6);
+
+	eh.type = htons(ETH_ARP);
+	ah.hardware_type = htons(ARP_HARDWARE);
+	ah.protocol_type = htons(ETH_IP);
+	ah.hardware_add_len = 6;
+	ah.protocol_add_len = 4;
+	ah.source_ip_add = myip;
+	ah.operation_field = htons(ARP_REQUEST);
+	ah.dest_ip_add = desIP;
+
+	memset(sendbuf, 0, sizeof(sendbuf));
+	memcpy(sendbuf, &eh, sizeof(eh));
+	memcpy(sendbuf + sizeof(eh), &ah, 14);
+	memcpy(sendbuf + sizeof(eh) + 14, &ah.source_ip_add, 10);
+	memcpy(sendbuf + sizeof(eh) + 24, &ah.dest_ip_add, 4);
+	if (pcap_sendpacket(adhandle, sendbuf, 42) == 0)
+	{
+		//接受ARP线程
+
+		arpAccept* accept = new arpAccept();
+		accept->adhandle = adhandle;
+		accept->desIP = desIP;
+		CWinThread* MyThread = AfxBeginThread(TheCapture, accept, THREAD_PRIORITY_NORMAL, 0, 0, NULL);
+
+		msginfo* pinfo = new msginfo();
 		CString data;
-		data.Format(L"Error reading the packets: %hs\r\n", pcap_geterr(adhandle));
+		data.Format(L"发送ARP成功 ARP INFO%s\r\n",arpInfo(ah));
+		pinfo->content = data;
+		AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
+	}
+	else
+	{
+		msginfo* pinfo = new msginfo();
+		CString data;
+		data.Format(L"发送ARP失败\r\n");
 		pinfo->content = data;
 		AfxGetApp()->m_pMainWnd->PostMessageW(WM_MYMESSAGE, 0, (LPARAM)pinfo);
 	}
 	return 0;
+}
+void CNetDataGetDlg::OnBnClickedSend()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	pcap_t* adhandle;
+	char errbuf[PCAP_ERRBUF_SIZE];
+	//抓包
+	int index = NetWorkCardBox.GetCurSel();
+	USES_CONVERSION;
+	string s(W2A(dnames[index]));
+	const char* namecstr = s.c_str();
+	//pcap_addr* a=&addrs[index];
+	if ((adhandle = pcap_open(namecstr,          // 设备名
+		65536,            // 要捕捉的数据包的部分 
+						  // 65535保证能捕获到不同数据链路层上的每个数据包的全部内容
+		PCAP_OPENFLAG_PROMISCUOUS,    // 混杂模式
+		1000,             // 读取超时时间
+		NULL,             // 远程机器验证
+		errbuf            // 错误缓冲池
+	)) == NULL)
+	{
+		DataContent.SetWindowTextW(L"获取网卡失败");
+		return;
+	}
+	u_long desIP=0;
+	DesIPAddr.GetAddress(desIP);
+	desIP = htonl(desIP);
+	//desIP = inet_addr("10.129.253.241");
+	sendArpPacket(adhandle, desIP);
 }
